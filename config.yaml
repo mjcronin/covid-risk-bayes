@@ -1,4 +1,4 @@
 ---
 # Directories
-raw_data: './data/raw/'
+data_dir: './data/'
 ...
