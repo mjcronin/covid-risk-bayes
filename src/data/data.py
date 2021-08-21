@@ -82,7 +82,5 @@ def get_reigons(df: pd.DataFrame) -> Tuple[List[str]]:
     country_set.remove('United Kingdom')
     
     countries = ['US', 'United Kingdom'] + sorted(list(country_set))
-    states = sorted(list(set(df.Province_State)))
-    sub_regions = sorted(list(set(df.Admin2)))
 
-    return countries, states, sub_regions
+    return countries
