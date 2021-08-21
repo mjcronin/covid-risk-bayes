@@ -1,2 +1,111 @@
-import streamlit as st
 
+import os
+import datetime as dt
+from typing import List
+
+import streamlit as st
+import yaml
+import pandas as pd
+
+from src.pages import home, model
+from src.data import data
+
+
+with open('./config.yaml', 'r') as f:
+    _CONFIG: dict = yaml.safe_load(f)
+
+_PAGES = {
+    'Home': home,
+    'Model': model,
+    'About': None
+}
+
+def main():
+
+    with st.spinner('Loading data...'):
+        df, countries = load_data(dt.date.today(), _CONFIG['data_dir'])
+    sidebar_navigation = st.sidebar.container()
+    sidebar_settings = st.sidebar.container()
+    sidebar_info = st.sidebar.container()
+
+    with sidebar_navigation:
+        st.title('Navigation')
+        page = st.radio("Go to", list(_PAGES.keys()))
+
+    with sidebar_settings:
+        if page == 'Model':
+            st.title('Settings')
+            country = st.selectbox('Country', countries)
+            if country == 'US':
+                state_label = 'State'
+                county_label = 'County'
+            else:
+                state_label = 'Province/State'
+                county_label = 'Sub-region'
+            regions, sub_regions = get_regions_subregions(df, country)
+            
+            if valid_regions(regions):
+                state = st.selectbox(state_label, regions)
+
+            if valid_regions(sub_regions):
+                sub_region = st.selectbox(county_label, sub_regions)
+
+    with sidebar_info:
+        st.info(
+            """App developed by Matthew Cronin.\n\nQuestions/comments? Please email matthew.j.cronin@gmail.com
+            """)
+
+    args = {
+        'Home': [],
+        'Model': [df]
+    }
+    _PAGES[page].write(*args[page])
+
+    return None
+
+@st.cache
+def load_data(today: dt.date, data_dir: str='./data/') -> pd.DataFrame:
+    """Load latest COVID data from JHU Github repo
+
+    Args:
+        today (dt.date): Todays's date
+    Returns:
+        df (pd.DataFrame): Last 14 days of daily covid incidence per 100k population by
+            geography.
+    """
+    df = data.load(today, data_dir)
+    countries = data.get_reigons(df)
+    
+    return df, countries
+
+
+def get_regions_subregions(df: pd.DataFrame, country: str):
+    regions = sorted(
+        list(
+            set(
+                df.loc[
+                    df.Country_Region==country, 'Province_State'
+                    ].fillna('Not Reported')
+            )
+        )
+    )
+    sub_regions = sorted(
+        list(
+            set(
+                df.loc[df.Country_Region==country, 'Admin2'].fillna('Not Reported')
+            )
+        )
+    )
+
+    return regions, sub_regions
+
+
+def valid_regions(regions: List[str]) -> bool:
+    """Return True if regions contains valid options"""
+    cond1 = all([len(regions)==1, regions[0] != 'Not Reported'])
+    cond2 = len(regions) > 1
+    
+    return any([cond1, cond2])
+
+if __name__ == '__main__':
+    main()
