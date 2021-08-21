@@ -2,6 +2,7 @@ import os
 import datetime as dt
 from typing import List
 
+import streamlit as st
 import pandas as pd
 
 
@@ -15,7 +16,7 @@ def load(today: dt.date, data_dir: str='./data/') -> pd.DataFrame:
         df (pd.DataFrame): DataFrame containing the last 14 days of JHU COVID 
             Incident_Rate and geographical info
     """
-    last_14 = [(today-dt.timedelta(days=d)).strftime('%M-%d-%Y') for d in range(1,15)]
+    last_14 = [(today-dt.timedelta(days=d)).strftime('%m-%d-%Y') for d in range(1,15)]
 
     raw_files = os.listdir(data_dir+'raw/')
     downloaded = [f[:-4] for f in raw_files if f[-4:]=='.csv']
