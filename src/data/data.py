@@ -1,6 +1,6 @@
 import os
 import datetime as dt
-from typing import List
+from typing import List, Tuple
 
 import streamlit as st
 import pandas as pd
@@ -73,3 +73,16 @@ def load_and_concat(last_14: List[str], data_dir: str='./data/') -> pd.DataFrame
     df = pd.concat(frames).reset_index(drop=True)
 
     return df
+
+
+def get_reigons(df: pd.DataFrame) -> Tuple[List[str]]:
+    """Return lists of countries, states, and sub-regions from df"""
+    country_set = set(df.Country_Region)
+    country_set.remove('US')
+    country_set.remove('United Kingdom')
+    
+    countries = ['US', 'United Kingdom'] + sorted(list(country_region))
+    states = sorted(list(set(df.Province_State)))
+    sub_regions = sorted(list(set(df.Admin2)))
+
+    return countries, states, sub_regions
