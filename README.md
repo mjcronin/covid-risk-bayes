@@ -1,6 +1,21 @@
 # covid-risk-bayes
 An app to predict the probability that an individual has an active COVID infection based on current local conditions.
 
+To run from command line (`bash` or `zsh`):
+- Create virtual environment (reccommended):
+
+    `pip install venv`
+
+    `python -m venv venv-covid`
+    
+    `source venv-covid/bin/activate`
+- Install requirements:
+
+    `pip install -r requirements.txt`
+- Launch via Streamlit:
+
+    `streamlit run app.py`
+
 ## Motivation
 In the early days of the COVID-19 pandemic, the prevailing philosophy of precautionary advice and regulations was to absolutely minimize the risk of exposure to the SARS-COV-2 virus. This necessitated the cessation of all non-essential activities and minimization of contact or association with those outside of a person's household. The ultimate goal was to "flatten the curve" and starve outbreaks by bringing the reproduction number (R) under 1.0 and eventually eliminating the virus; or at least to mitigate the spread of the virus until a successful vaccine candidate could be identified and deployed to end the pandemic.
 
