@@ -46,9 +46,13 @@ def main():
             
             if valid_regions(regions):
                 state = st.selectbox(state_label, regions)
+            else:
+                state = None
 
             if valid_regions(sub_regions):
                 sub_region = st.selectbox(county_label, sub_regions)
+            else:
+                sub_region = None
 
     with sidebar_info:
         st.info(
@@ -57,7 +61,7 @@ def main():
 
     args = {
         'Home': [],
-        'Model': [df]
+        'Model': [df, country, state, sub_region]
     }
     _PAGES[page].write(*args[page])
 
