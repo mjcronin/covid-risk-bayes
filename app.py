@@ -36,12 +36,14 @@ def main():
         if page == 'Model':
             st.title('Settings')
             country = st.selectbox('Country', countries)
+            
             if country == 'US':
                 state_label = 'State'
                 county_label = 'County'
             else:
                 state_label = 'Province/State'
                 county_label = 'Sub-region'
+
             regions, sub_regions = get_regions_subregions(df, country)
             
             if valid_regions(regions):
