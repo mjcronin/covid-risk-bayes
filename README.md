@@ -50,9 +50,9 @@ We can solve this equation relatively trivially using publically available data 
 
 ![NI1](./images/NI_1.svg) ,
 
-![NI1](./images/NI_1.svg) , and
+![NI2](./images/NI_2.svg) , and
 
-![NI1](./images/NI_1.svg) , 
+![NI3](./images/NI_3.svg) , 
 
 therefore:
 
