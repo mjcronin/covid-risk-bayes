@@ -37,3 +37,35 @@ Using this statement, we can estimate the likelihood of an individual having an 
 
 ![COVID Bayes](./images/covid-bayes.svg)
 
+We can solve this equation relatively trivially using publically available data if we make a number of assumptions:
+
+ - Both vaccinated and unvaccinated individuals have equal likelihood of exposure to an infectious level of SARS-COV-2 virus.
+ - Both Both vaccinated and unvaccinated individuals are equally likely to get tested for COVID-19 infection.
+
+`P(I)` is the local infection rate, and can be calculated from Johns HOpkins University COVID-19 data available [here](https://coronavirus.jhu.edu/about/how-to-use-our-data). This rate can be scaled by prior knowledge or belief regarding the proportion of true cases identified by testing. Currently, this factor is chosen by the user and incorporated into the model. Projects such as [covid19-projections.com](https://covid19-projections.com/estimating-true-infections-revisited/) have developed complex models addressing this issue, but [do not currently update their figures](https://youyanggu.com/blog/one-year-later).
+
+`P(V)` is the local vaccination rate, and is more trivially calculated from the CCI vaccination dataset also linked from the [JHU COVID data page](https://coronavirus.jhu.edu/about/how-to-use-our-data). In this model, vaccination rate is assumed to be constant within countries outside of the US, and within States in the US.
+
+`P(V|I)` can be deduced from a simple statement of the number of infections `NI` in a population `pop` given a fixed probability a potentially infectious exposure to COVID-19 `P(E)`, an estimated vaccing efficacy `eff`, and `P(V)`.
+
+![NI1](./images/NI_1.svg) ,
+
+![NI1](./images/NI_1.svg) , and
+
+![NI1](./images/NI_1.svg) , 
+
+therefore:
+
+ ![NI](./images/NI.svg) .
+
+Given that
+
+![p_vi](./images/p_v_i.svg) ,
+
+we find that 
+
+![p_V_i_solved](./images/p_v_i_solved.svg)
+
+
+
+
