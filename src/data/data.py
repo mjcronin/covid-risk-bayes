@@ -8,35 +8,39 @@ import numpy as np
 
 def load(today: dt.date, data_dir: str='./data/') -> pd.DataFrame:
     """
-    Load and concatenate the last 14 days of JHU COVID data.
+    Load last 15 days of JHU COVID data.
 
     Args:
         today (dt.date)
     Returns:
-        df (pd.DataFrame): DataFrame containing the last 14 days of JHU COVID 
+        df (pd.DataFrame): DataFrame containing the last 15 days of JHU COVID 
             Incident_Rate and geographical info
     """
-    last_14 = [(today-dt.timedelta(days=d)).strftime('%m-%d-%Y') for d in range(1,15)]
+    # Additional day is downloaded to allow calc. of 14 days of new case counts
+    last_15 = [(today-dt.timedelta(days=d)).strftime('%m-%d-%Y') for d in range(1,16)]
 
     raw_files = os.listdir(data_dir+'raw/')
     downloaded = [f[:-4] for f in raw_files if f[-4:]=='.csv']
-    to_download = [f for f in last_14 if f not in downloaded]
+    to_download = [f for f in last_15 if f not in downloaded]
 
     download_and_save(to_download, data_dir=data_dir)
-    df = load_and_concat(last_14, data_dir=data_dir, today=today)
+    df = load_and_concat(last_15, data_dir=data_dir, today=today)
 
     return df
 
 def download_and_save(to_download: List[str], data_dir: str='./data/') -> None:
-    """Download last 14 daily CSVs from JHU COVID tracker if not stored locally
+    """Download last 15* daily CSVs from JHU COVID tracker if not stored locally
     
+    \* 15 days are pulled to allow a diff() operation to calculate new cases over the 
+    last 14 days
+
     Args:
         to_download (List[str]): dates to download in format '%m-%d-%Y'
         data_dir (str): root directory for app data
     Returns:
         None
     """
-    # Download any data from the last 14 days that is not stored locally
+    # Download any data from the last 15 days that is not stored locally
     if len(to_download) > 0:
         for d in to_download:
             url = (
@@ -49,16 +53,16 @@ def download_and_save(to_download: List[str], data_dir: str='./data/') -> None:
 
 
 def load_and_concat(
-    last_14: List[str], data_dir: str='./data/', today: dt.date=None
+    last_15: List[str], data_dir: str='./data/', today: dt.date=None
 ) -> pd.DataFrame:
-    """Load and concatenate last 14 days of JHU COVID CSV data
+    """Load and concatenate last 15 days of JHU COVID CSV data
     
     Args:
-        last_14 (list): Last 14 dates in format '%m-%d-%Y'
+        last_15 (list): Last 15 days' dates in format '%m-%d-%Y'
         data_dir (str): root directory for app data
         today (dt.date): Today's date as a dt.date
     Returns:
-        df (pd.DataFrame): DataFrame containing the last 14 days of JHU COVID 
+        df (pd.DataFrame): DataFrame containing the last 15 days of JHU COVID 
             Incident_Rate and geographical info 
     """
     kwargs = {
@@ -72,7 +76,7 @@ def load_and_concat(
             ]
     }
     frames = [
-        pd.read_csv(data_dir+'raw/{}.csv'.format(date), **kwargs) for date in last_14
+        pd.read_csv(data_dir+'raw/{}.csv'.format(date), **kwargs) for date in last_15
     ]
     # Do a little feature engineering
     df = pd.concat(frames).reset_index(drop=True)
@@ -84,7 +88,7 @@ def load_and_concat(
     df['population'] = (
         df.Confirmed.div(df.Incident_Rate).mul(1e5).astype(int, errors='ignore')
     )
-
+    
     # Additional date filter
     df = df.loc[df.date >= (today - dt.timedelta(days=15))]
 
@@ -111,7 +115,7 @@ def subset_data(
     """Return data subset of interest
     
     Args:
-        df (pd.DataFrame): Last 14 days' JHU COVID data
+        df (pd.DataFrame): Last 15 days' JHU COVID data
         country (str): Country of interest
         region (str): Region of interest
         sub_region (str): Sub-region of interest
@@ -142,6 +146,10 @@ def subset_data(
             ).agg({'Confirmed': sum, 'population': sum})
         )
         subset['Incident_Rate'] = subset.Confirmed.mul(1e5).div(subset.population)
+         # Diff to calulate new cases count
+        subset['new_cases'] = subset.Confirmed.diff()
+        subset['rolling_7'] = subset.new_cases.rolling(7).mean()
+        subset = subset.iloc[1:].reset_index(drop=True)
     except:
         subset = None
         # st.write("## Data not reported at this granularity in the last 14 days.")
