@@ -8,7 +8,13 @@ from src.data import data
 from src.model import covid_bayes
 
 
-def write(df: pd.DataFrame, country: str, region: str, sub_region: str) -> None:
+def write(
+    df: pd.DataFrame,
+    vacc_data: pd.DataFrame,
+    country: str,
+    region: str,
+    sub_region: str
+) -> None:
     st.title('COVID-19 infeciton likelihood estimation')
     model_control = st.container()
 
@@ -31,7 +37,8 @@ def write(df: pd.DataFrame, country: str, region: str, sub_region: str) -> None:
 
 
 def run_model(
-    df,
+    df: pd.DataFrame,
+    vacc_data,
     country: str='US',
     region: Optional[str]=None,
     sub_region: Optional[str]=None,
@@ -60,9 +67,11 @@ def run_model(
             and uninformative error message. \n \nApologies for the inconvenience!"""
         )
     else:
-        pop = subset.population.iloc[-1]
-        infectious_cases = subset.new_cases[-infectious_duration:].sum()
-        infectious_rate = infectious_cases / pop
+
+        pop, infectious_cases, infectious_rate = get_model_inputs(
+            subset, infectious_duration
+        )
+
         st.write('USING PLACEHOLDER VACCINATION RATE = 0.4 AND VACCINE EFFICACY = 0.65')
         vaccination_rate = 0.4
         vaccine_efficacy = 0.65
@@ -90,6 +99,14 @@ def run_model(
         )
     
     return None
+
+
+def get_model_inputs(subset: pd.DataFrame, infectious_duration: int) -> tuple:
+    pop = subset.population.iloc[-1]
+    infectious_cases = subset.new_cases[-infectious_duration:].sum()
+    infectious_rate = infectious_cases / pop
+
+    return (pop, infectious_cases, infectious_rate)
 
 
 # def write_results(infectious_rate, risk)
