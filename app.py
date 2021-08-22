@@ -7,7 +7,7 @@ import streamlit as st
 import yaml
 import pandas as pd
 
-from src.pages import home, model
+from src.pages import home, model, disclaimer
 from src.data import data
 
 
@@ -17,11 +17,12 @@ with open('./config.yaml', 'r') as f:
 _PAGES = {
     'Home': home,
     'Model': model,
-    'About': None
+    'About': None,
+    'Disclaimer': disclaimer
 }
 
 def main():
-
+    st.write('Proof of concept - see Disclaimer page')
     with st.spinner('Loading data...'):
         df, countries = load_data(dt.date.today(), _CONFIG['data_dir'])
 
@@ -35,7 +36,6 @@ def main():
 
     with sidebar_settings:
         if page == 'Model':
-            st.title('Settings')
             country = st.selectbox('Country', countries)
 
             if country == 'US':
@@ -58,6 +58,8 @@ def main():
                 sub_region = st.selectbox(county_label, sub_regions)
             else:
                 sub_region = None
+
+            
         else:
             country = None
             state = None
@@ -70,7 +72,9 @@ def main():
 
     args = {
         'Home': [],
-        'Model': [df, country, state, sub_region]
+        'Model': [df, country, state, sub_region],
+        'About': [],
+        'Disclaimer': []
     }
     _PAGES[page].write(*args[page])
 
@@ -86,7 +90,7 @@ def load_data(today: dt.date, data_dir: str='./data/') -> pd.DataFrame:
         df (pd.DataFrame): Last 14 days of daily covid incidence per 100k population by
             geography.
     """
-    df = data.load(today, data_dir)
+    df = data.load_cases(today, data_dir)
     countries = data.get_regions(df)
     
     return df, countries
