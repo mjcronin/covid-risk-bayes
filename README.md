@@ -31,7 +31,7 @@ Here, we deploy a Bayesian statistical model to provide an estimation of the pro
 ## Theory
 Bayes' theorem states that:
 
-![Bayes theorem](./images/bayes_theorem.png)
+![Bayes theorem](./images/bayes_theorem.svg)
 
 Using this statement, we can estimate the likelihood of an individual having an active COVID-19 infection (`I`), conditional on their vaccination status status (`V`), as:
 
