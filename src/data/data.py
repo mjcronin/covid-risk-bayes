@@ -20,6 +20,8 @@ def load_cases(today: dt.date, data_dir: str='./data/') -> pd.DataFrame:
         os.mkdir(data_dir)
     if not os.path.exists(data_dir + 'raw/'):
         os.mkdir(data_dir + 'raw/')
+    if not os.path.exists(data_dir + 'raw/vaccinations/'):
+        os.mkdir(data_dir + 'raw/vaccinations/')
     # Additional day is downloaded to allow calc. of 14 days of new case counts
     last_15 = [(today-dt.timedelta(days=d)).strftime('%m-%d-%Y') for d in range(1,16)]
 
