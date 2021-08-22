@@ -156,7 +156,7 @@ def get_subregions(df: pd.DataFrame, country: str, region: str):
 def valid_regions(regions: List[str]) -> bool:
     """Return True if regions contains valid options"""
     cond1 = all([len(regions)==1, regions[0] != 'Not Reported'])
-    cond2 = len(regions) > 1
+    cond2 = len(regions) > 2
     
     return any([cond1, cond2])
 
