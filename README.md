@@ -1,4 +1,7 @@
 # covid-risk-bayes
+## Disclaimer
+This project is simply intended as a proof of concept, and is neither peer-reviewed nor actively maintained (althogh development is ongoing). As such, users should not use
+## Introduction
 An app to predict the probability that an individual has an active COVID infection based on current local conditions.
 
 To run from command line (`bash` or `zsh`):
