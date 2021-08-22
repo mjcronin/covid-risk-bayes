@@ -82,8 +82,6 @@ def run_model(
         )
     else:
 
-        st.write('USING ASSUMED VACCINE EFFICACY = {}'.format(np.round(vaccine_efficacy,2)))
-
         risk = covid_bayes.predict_risk(
             infectious_rate,
             vaccination_rate,
