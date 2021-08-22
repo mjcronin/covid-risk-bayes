@@ -1,5 +1,6 @@
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 import streamlit as st
 
@@ -9,8 +10,23 @@ from src.model import covid_bayes
 
 def write(df: pd.DataFrame, country: str, region: str, sub_region: str) -> None:
     st.title('COVID-19 infeciton likelihood estimation')
+    model_control = st.container()
 
-    run_model(df, country, region=region, sub_region=sub_region)
+    with model_control:
+        cols = st.columns(3)
+        
+        with cols[1]:
+            identification_rate = st.slider(
+                'Infection detection rate (%)', min_value=1, max_value=100, value=100
+            )
+            identification_rate /= 100 # Rescale from % to decimal
+    run_model(
+        df,
+        country,
+        region=region,
+        sub_region=sub_region,
+        identification_rate=identification_rate,
+    )
     return None
 
 
@@ -20,6 +36,7 @@ def run_model(
     region: Optional[str]=None,
     sub_region: Optional[str]=None,
     infectious_duration: int=10,
+    identification_rate: float=1.0
 ):
     """
     Args:
@@ -32,6 +49,8 @@ def run_model(
     """
 
     subset = data.subset_data(df, country, region, sub_region)
+    locs = [loc for loc in [sub_region, region, country] if loc!='All']
+    location = ', '.join(locs)
 
     if subset.shape[0] != 14:
         st.write(
@@ -41,9 +60,9 @@ def run_model(
             and uninformative error message. \n \nApologies for the inconvenience!"""
         )
     else:
-        st.write(subset.loc[-10:,'Confirmed'].sum())
+        pop = subset.population.iloc[-1]
         infectious_cases = subset.new_cases[-infectious_duration:].sum()
-        infectious_rate = infectious_cases / subset.population[-1]
+        infectious_rate = infectious_cases / pop
         st.write('USING PLACEHOLDER VACCINATION RATE = 0.4 AND VACCINE EFFICACY = 0.65')
         vaccination_rate = 0.4
         vaccine_efficacy = 0.65
@@ -51,9 +70,26 @@ def run_model(
         risk = covid_bayes.predict_risk(
             infectious_rate,
             vaccination_rate,
-            vaccine_efficacy
+            vaccine_efficacy,
+            identification_rate=identification_rate
         )
-        pass
+
+        st.write("""### The model estmates that in {loc}: \n \n * ### A vaccinatied individual has a **{v_prob}%** probability of active COVID-19 infection\n * ### An unvaccinatied individual has a **{uv_prob}%** probability of active COVID-19 infection
+        """.format(
+            loc=location,
+            v_prob = np.round(100*risk['vaccinated'], 2),
+            uv_prob = np.round(100*risk['unvaccinated'], 2)
+            )
+        )
+        st.write("""
+        ### Based on:\n * A local vaccination rate of **{vacc_rate}%** \n- An estimated vaccine efficacy of **{vacc_eff}%** against COVID-19 infection\n - A rate of **{inf_rate}** infections per 100,000 people in the local population.""".format(
+            vacc_rate = 100*vaccination_rate,
+            vacc_eff = 100*vaccine_efficacy,
+            inf_rate = np.round(1e5*infectious_rate, 2)
+            )
+        )
     
-    st.write(subset)
     return None
+
+
+# def write_results(infectious_rate, risk)
