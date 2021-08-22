@@ -33,6 +33,7 @@ Bayes' theorem states that:
 
 ![Bayes theorem](./images/bayes_theorem.png)
 
-Using this statement, we can estimate the likelihood of an individual having an active COVID-19 infection (`I`), conditional on their vaccination status status (`V`), as
+Using this statement, we can estimate the likelihood of an individual having an active COVID-19 infection (`I`), conditional on their vaccination status status (`V`), as:
 
-![](./images/covid-bayes.png)
+![COVID Bayes](./images/covid-bayes.png)
+
