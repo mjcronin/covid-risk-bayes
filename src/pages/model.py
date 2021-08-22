@@ -15,7 +15,6 @@ def write(
     region: str,
     sub_region: str
 ) -> None:
-    # st.write(vacc_data.loc[vacc_data.Country_Region=='US'])
     st.title('COVID-19 infeciton likelihood estimation')
     model_control = st.container()
 
@@ -65,10 +64,13 @@ def run_model(
     """
     loc_inputs = (country, region, sub_region)
     subset = data.subset_data(df, *loc_inputs)
-    infectious_rate, vaccination_rate = get_model_inputs(
+    infectious_rate = get_model_inputs(
             subset, vacc_data, infectious_duration, *loc_inputs
     )
-    locs = [loc for loc in [sub_region, region, country] if loc!='All']
+    vaccination_rate = calc_vacc_rate(df, vacc_data, country, region, sub_region)
+
+    loc_inputs = [n for n in [country, region, sub_region] if n]
+    locs = [loc for loc in loc_inputs if loc!='All']
     location = ', '.join(locs)
 
     if subset.shape[0] != 14:
@@ -135,15 +137,62 @@ def get_model_inputs(
     infectious_cases = subset.new_cases[-infectious_duration:].sum()
     infectious_rate = infectious_cases / pop
     # Vaccination-related inputs
-    filter = (vacc_data.Country_Region==country)
-    if region != 'All':
-        filter = (filter) & (vacc_data.Province_State==region)
+
+    if country != 'US':
+        filter = (vacc_data.Country_Region==country) & (vacc_data.Province_State.isna())
+    elif country=='US':
+        filter = (vacc_data.Country_Region==country)
+        if region != 'All':
+            filter = (filter) & (vacc_data.Province_State==region)
+
+    return (infectious_rate)
+
+
+def calc_vacc_rate(
+    df,
+    vacc_data,
+    country,
+    region,
+    sub_region
+):
+    if country != 'US':
+        filter = (vacc_data.Country_Region==country) & (vacc_data.Province_State.isna())
+
+    elif country=='US':
+        filter = (vacc_data.Country_Region==country)
+        if region != 'All':
+            filter = (filter) & (vacc_data.Province_State==region)
     
-    vacc_count = vacc_data.loc[filter, 'People_Fully_Vaccinated'].sum()
+    vacc_count = vacc_data.loc[filter, 'People_Fully_Vaccinated'].max()
+    pop = get_pop(df, country, region=region)
     vaccination_rate = vacc_count/pop
 
+    return vaccination_rate
 
-    return (infectious_rate, vaccination_rate)
 
+def get_pop(df: pd.DataFrame, country: str, region: Optional[str]=None):
+    """Return subset population at granularity of available vaccination data"""
+    c1 = country=='US'
+    c2 = region != None
+    c3 = region != 'All'
 
-# def write_results(infectious_rate, risk)
+    if all([c1, c2, c3]):
+        pop_agg = df.groupby(
+                by=['date', 'Country_Region', 'Province_State'], as_index=False
+            ).agg({'population': sum})
+        pop_agg = pop_agg.loc[
+            (pop_agg.Country_Region==country) & (pop_agg.Province_State==region)
+        ]
+    
+    c4 = country != 'US'
+    c5 = all([country=='US', any([not region, region=='All'])])
+    
+    if any([c4, c5]) :
+        pop_agg = df.groupby(
+            by=['date', 'Country_Region'], as_index=False
+        ).agg({'population': sum})
+        pop_agg = pop_agg.loc[pop_agg.Country_Region==country]
+
+    pop=np.round(pop_agg.population.max())
+
+    return pop
