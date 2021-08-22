@@ -61,7 +61,6 @@ def run_model(
     infectious_rate, vaccination_rate = get_model_inputs(
             subset, vacc_data, infectious_duration, *loc_inputs
     )
-    st.write(vaccination_rate)
     locs = [loc for loc in [sub_region, region, country] if loc!='All']
     location = ', '.join(locs)
 
@@ -93,7 +92,7 @@ def run_model(
         )
         st.write("""
         ### Based on:\n * A local vaccination rate of **{vacc_rate}%** \n- An estimated vaccine efficacy of **{vacc_eff}%** against COVID-19 infection\n - A rate of **{inf_rate}** infections per 100,000 people in the local population.""".format(
-            vacc_rate = 100*vaccination_rate,
+            vacc_rate = np.round(100*vaccination_rate, 2),
             vacc_eff = 100*vaccine_efficacy,
             inf_rate = np.round(1e5*infectious_rate, 2)
             )
