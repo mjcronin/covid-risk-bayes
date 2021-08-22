@@ -4,7 +4,7 @@ import numpy as np
 
 
 def predict_risk(
-    incident_rate: float,
+    infectious_rate: float,
     vaccination_rate: float,
     vaccine_efficacy: float,
     identification_rate: Optional[float]=None
@@ -34,7 +34,7 @@ def predict_risk(
         - Equal risk of virus exposure to vaccinated and unvaccianted individuals
     
     Args:
-        incident_rate (float): Local rate of  active infection (per 100,000 pop)
+        incfectious_rate (float): Local rate of  active infection (range 0 to 1)
         vaccination_rate (float): Local vaccination rate (0.0-1.0)
         vaccine_efficacy (float): Proportion of potential infections blocked by vaccine (0.0-1.0)
         identification_rate (Optional[float]): Proportion of true infection count represented in data.
@@ -44,15 +44,13 @@ def predict_risk(
     """
     risk = {}
 
-    # Scale from per 100,000 to 0.0 -s 1.0 range
-    infection_rate = incident_rate / 1e5
 
     if identification_rate:
-        infection_rate /= identification_rate # Adjust infeciton rate to account for missed diagnoses
+        infectious_rate /= identification_rate # Adjust infeciton rate to account for missed diagnoses
     
     p_v = vaccination_rate # P(V)
     p_nv = 1 - vaccination_rate # P(¬V)
-    p_i = infection_rate # P(I)
+    p_i = infectious_rate # P(I)
     p_vi = (p_v*(1 - vaccine_efficacy)) / ((p_v*(1 - vaccine_efficacy)) + p_nv) # P(V|I)
     p_nv_i = p_nv / ((p_v*(1 - vaccine_efficacy)) + p_nv) # P(¬V|I)
     
