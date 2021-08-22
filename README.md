@@ -1,6 +1,6 @@
 # covid-risk-bayes
 ## Disclaimer
-This project is simply intended as a proof of concept, and is neither peer-reviewed nor actively maintained (althogh development is ongoing). As such, users should not use
+This project is simply intended as a proof of concept, and is neither peer-reviewed nor actively maintained (althogh development is ongoing). As such, users should not make decisions based on the model output.
 ## Introduction
 An app to predict the probability that an individual has an active COVID infection based on current local conditions.
 
@@ -33,4 +33,6 @@ Bayes' theorem states that:
 
 ![Bayes theorem](./images/bayes_theorem.png)
 
-A
+Using this statement, we can estimate the likelihood of an individual having an active COVID-19 infection (`I`), conditional on their vaccination status status (`V`), as
+
+![COVID Bayes](./images/covid-bayes.svg)<img src="./images/covid-bayes.svg">
