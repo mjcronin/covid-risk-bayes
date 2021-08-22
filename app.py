@@ -24,6 +24,7 @@ def main():
 
     with st.spinner('Loading data...'):
         df, countries = load_data(dt.date.today(), _CONFIG['data_dir'])
+
     sidebar_navigation = st.sidebar.container()
     sidebar_settings = st.sidebar.container()
     sidebar_info = st.sidebar.container()
@@ -36,7 +37,7 @@ def main():
         if page == 'Model':
             st.title('Settings')
             country = st.selectbox('Country', countries)
-            
+
             if country == 'US':
                 state_label = 'State'
                 county_label = 'County'
@@ -44,17 +45,23 @@ def main():
                 state_label = 'Province/State'
                 county_label = 'Sub-region'
 
-            regions, sub_regions = get_regions_subregions(df, country)
+            regions = get_regions(df, country)
             
             if valid_regions(regions):
                 state = st.selectbox(state_label, regions)
+                sub_regions = get_subregions(df, country, state)
             else:
                 state = None
+                sub_regions = []
 
             if valid_regions(sub_regions):
                 sub_region = st.selectbox(county_label, sub_regions)
             else:
                 sub_region = None
+        else:
+            country = None
+            state = None
+            sub_region = None
 
     with sidebar_info:
         st.info(
@@ -80,13 +87,14 @@ def load_data(today: dt.date, data_dir: str='./data/') -> pd.DataFrame:
             geography.
     """
     df = data.load(today, data_dir)
-    countries = data.get_reigons(df)
+    countries = data.get_regions(df)
     
     return df, countries
 
 
-def get_regions_subregions(df: pd.DataFrame, country: str):
-    regions = sorted(
+def get_regions(df: pd.DataFrame, country: str):
+    """Return unique values of df.Province_State where df.Country_Region==country"""
+    regions = ['All'] + sorted(
         list(
             set(
                 df.loc[
@@ -95,15 +103,28 @@ def get_regions_subregions(df: pd.DataFrame, country: str):
             )
         )
     )
-    sub_regions = sorted(
+    
+    
+    return regions
+
+
+def get_subregions(df: pd.DataFrame, country: str, region: str):
+    """
+    Return unique values of df.Admin2 where df.Province_State==region and 
+    df.Country_Region==country
+    """
+    sub_regions = ['All'] + sorted(
         list(
             set(
-                df.loc[df.Country_Region==country, 'Admin2'].fillna('Not Reported')
+                df.loc[
+                    (df.Country_Region==country) & (df.Province_State==region),
+                    'Admin2'
+                ].fillna('Not Reported')
             )
         )
     )
 
-    return regions, sub_regions
+    return sub_regions
 
 
 def valid_regions(regions: List[str]) -> bool:
@@ -112,6 +133,7 @@ def valid_regions(regions: List[str]) -> bool:
     cond2 = len(regions) > 1
     
     return any([cond1, cond2])
+
 
 if __name__ == '__main__':
     main()
