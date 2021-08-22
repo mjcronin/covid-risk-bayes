@@ -61,15 +61,15 @@ def load_vaccinations(data_dir: str='./data/') -> pd.DataFrame:
         data_dir+'vaccinations_us.csv', usecols=usecols_us
     )
     vacc_global = pd.read_csv(
-        data_dir+'vaccinations_global.csv', index_col=0, usecols=usecols_global
+        data_dir+'vaccinations_global.csv', usecols=usecols_global
     )
     rename = {
         'People_partially_vaccinated': 'People_Partially_Vaccinated',
         'People_fully_vaccinated': 'People_Fully_Vaccinated'
     }
-    vacc_global.rename(rename, axis=1)
+    vacc_global.rename(rename, axis=1, inplace=True)
     vaccinations = pd.concat([vacc_us, vacc_global], axis=0)
-
+ 
     return vaccinations
 
 
@@ -201,9 +201,9 @@ def subset_data(
 
     subset = df.loc[filter, :].reset_index(drop=True).dropna(axis=1, how='all').copy()
 
-    if region != 'All':
+    if region not in ['All', 'Not Reported']:
         by=['date', 'Country_Region', 'Province_State']
-    elif sub_region != 'All':
+    elif sub_region not in  ['All', 'Not Reported']:
         by=['date', 'Country_Region', 'Province_State']
     else:
         by=['date', 'Country_Region'
