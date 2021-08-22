@@ -58,7 +58,7 @@ def load_vaccinations(data_dir: str='./data/') -> pd.DataFrame:
         'People_partially_vaccinated'
     ]
     vacc_us = pd.read_csv(
-        data_dir+'vaccinations_us.csv', index_col=0, usecols=usecols_us
+        data_dir+'vaccinations_us.csv', usecols=usecols_us
     )
     vacc_global = pd.read_csv(
         data_dir+'vaccinations_global.csv', index_col=0, usecols=usecols_global
@@ -115,7 +115,7 @@ def download_and_save_CCI(data_dir: str='./data/raw/') -> None:
         '/vaccine_data/global_data/time_series_covid19_vaccine_global.csv'
     )
     pd.read_csv(url_us).to_csv(data_dir+'vaccinations_us.csv')
-    pd.read_csv(url_global).to_csv(data_dir+'vaccinations_global.csv')
+    pd.read_csv(url_global, index_col=0).to_csv(data_dir+'vaccinations_global.csv')
 
     return None
 
