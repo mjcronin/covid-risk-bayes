@@ -15,6 +15,7 @@ def write(
     region: str,
     sub_region: str
 ) -> None:
+    # st.write(vacc_data.loc[vacc_data.Country_Region=='US'])
     st.title('COVID-19 infeciton likelihood estimation')
     model_control = st.container()
 
@@ -28,6 +29,7 @@ def write(
             identification_rate /= 100 # Rescale from % to decimal
     run_model(
         df,
+        vacc_data,
         country,
         region=region,
         sub_region=sub_region,
@@ -38,7 +40,7 @@ def write(
 
 def run_model(
     df: pd.DataFrame,
-    vacc_data,
+    vacc_data: pd.DataFrame,
     country: str='US',
     region: Optional[str]=None,
     sub_region: Optional[str]=None,
@@ -54,8 +56,12 @@ def run_model(
         infectious_duration (int): Number of days following +ve test that individuals 
             are assumed to remain infectious
     """
-
-    subset = data.subset_data(df, country, region, sub_region)
+    loc_inputs = (country, region, sub_region)
+    subset = data.subset_data(df, *loc_inputs)
+    infectious_rate, vaccination_rate = get_model_inputs(
+            subset, vacc_data, infectious_duration, *loc_inputs
+    )
+    st.write(vaccination_rate)
     locs = [loc for loc in [sub_region, region, country] if loc!='All']
     location = ', '.join(locs)
 
@@ -68,12 +74,7 @@ def run_model(
         )
     else:
 
-        pop, infectious_cases, infectious_rate = get_model_inputs(
-            subset, infectious_duration
-        )
-
-        st.write('USING PLACEHOLDER VACCINATION RATE = 0.4 AND VACCINE EFFICACY = 0.65')
-        vaccination_rate = 0.4
+        st.write('USING PLACEHOLDER VACCINE EFFICACY = 0.65')
         vaccine_efficacy = 0.65
 
         risk = covid_bayes.predict_risk(
@@ -101,12 +102,43 @@ def run_model(
     return None
 
 
-def get_model_inputs(subset: pd.DataFrame, infectious_duration: int) -> tuple:
+def get_model_inputs(
+    subset: pd.DataFrame,
+    vacc_data: pd.DataFrame,
+    infectious_duration: int,
+    country: str,
+    region: str,
+    sub_region: str
+) -> tuple:
+    """Extract model inputs from data
+
+    Args:
+        subset (pd.DataFrame): Location-specific subset of JHU COVID data for last 14 
+            days 
+        vacc_data (pd.DataFrame): Latest merged CCI vaccination dataset
+        infectious_duration (int): Number of days following +ve test that individuals 
+            are assumed to remain infectious
+        country (str): Selected country
+        region (str): Selected state/region
+        sub_region (str): Selected county/sub_region
+
+    Returns:
+        tuple: [description]
+    """
+    # Subset-derived inputs
     pop = subset.population.iloc[-1]
     infectious_cases = subset.new_cases[-infectious_duration:].sum()
     infectious_rate = infectious_cases / pop
+    # Vaccination-related inputs
+    filter = (vacc_data.Country_Region==country)
+    if region != 'All':
+        filter = (filter) & (vacc_data.Province_State==region)
+    
+    vacc_count = vacc_data.loc[filter, 'People_Fully_Vaccinated'].sum()
+    vaccination_rate = vacc_count/pop
 
-    return (pop, infectious_cases, infectious_rate)
+
+    return (infectious_rate, vaccination_rate)
 
 
 # def write_results(infectious_rate, risk)
