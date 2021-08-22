@@ -1,9 +1,9 @@
 import os
 import datetime as dt
-from typing import List, Tuple, Optional, Dict
+from typing import List, Tuple, Optional
 
+import streamlit as st
 import pandas as pd
-import numpy as np
 
 
 def load_cases(today: dt.date, data_dir: str='./data/') -> pd.DataFrame:
@@ -32,18 +32,45 @@ def load_cases(today: dt.date, data_dir: str='./data/') -> pd.DataFrame:
     return df
 
 
-def load_vaccinations(
-    today: dt.date, data_dir: str='./data/'
-) -> Dict[str, pd.DataFrame]:
+def load_vaccinations(data_dir: str='./data/') -> pd.DataFrame:
     """
-    Load last 15 days of CCI COVID vaccinationdata.
+    Load latest CCI COVID vaccination data.
 
     Args:
-        today (dt.date)
+        data_dir (str): root directory for app data
     Returns:
-        df (Dict[str, pd.DataFrame]): DataFrame containing the last 15 days of CCI
+        df (pd.DataFrame): DataFrame containing the last 15 days of CCI
             COVID vaccination data for 'US' and 'Global'
     """
+    data_dir += 'raw/vaccinations/'
+    usecols_us = [
+        'Date',
+        'Country_Region',
+        'Province_State',
+        'People_Fully_Vaccinated',
+        'People_Partially_Vaccinated'
+    ]
+    usecols_global = [
+        'Date',
+        'Country_Region',
+        'Province_State',
+        'People_fully_vaccinated',
+        'People_partially_vaccinated'
+    ]
+    vacc_us = pd.read_csv(
+        data_dir+'vaccinations_us.csv', index_col=0, usecols=usecols_us
+    )
+    vacc_global = pd.read_csv(
+        data_dir+'vaccinations_global.csv', index_col=0, usecols=usecols_global
+    )
+    rename = {
+        'People_partially_vaccinated': 'People_Partially_Vaccinated',
+        'People_fully_vaccinated': 'People_Fully_Vaccinated'
+    }
+    vacc_global.rename(rename, axis=1)
+    vaccinations = pd.concat([vacc_us, vacc_global], axis=0)
+
+    return vaccinations
 
 
 def download_and_save_JHU(to_download: List[str], data_dir: str='./data/') -> None:
@@ -71,7 +98,13 @@ def download_and_save_JHU(to_download: List[str], data_dir: str='./data/') -> No
 
 
 def download_and_save_CCI(data_dir: str='./data/raw/') -> None:
-    """Download the latest US and Global vaccination data from the CCI repo and save"""
+    """Download the latest US and Global vaccination data from the CCI repo and save
+    
+    Args:
+        data_dir (str): root directory for app data
+    Returns:
+        None
+    """
     data_dir += 'raw/vaccinations/'
     url_us = (
         'https://raw.githubusercontent.com/govex/COVID-19/master/data_tables'
@@ -82,11 +115,11 @@ def download_and_save_CCI(data_dir: str='./data/raw/') -> None:
         '/vaccine_data/global_data/time_series_covid19_vaccine_global.csv'
     )
     pd.read_csv(url_us).to_csv(data_dir+'vaccinations_us.csv')
-    pd.read_csv(url_us).to_csv(data_dir+'vaccinations_global.csv')
+    pd.read_csv(url_global).to_csv(data_dir+'vaccinations_global.csv')
 
     return None
 
-
+@st.cache
 def load_and_concat(
     last_15: List[str], data_dir: str='./data/', today: dt.date=None
 ) -> pd.DataFrame:
@@ -129,7 +162,7 @@ def load_and_concat(
 
     return df
 
-
+@st.cache
 def get_regions(df: pd.DataFrame) -> Tuple[List[str]]:
     """Return lists of countries, states, and sub-regions from df"""
     country_set = set(df.Country_Region)
@@ -140,7 +173,7 @@ def get_regions(df: pd.DataFrame) -> Tuple[List[str]]:
 
     return countries
 
-
+@st.cache
 def subset_data(
     df: pd.DataFrame,
     country: str,
