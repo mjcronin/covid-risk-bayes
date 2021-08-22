@@ -188,7 +188,8 @@ def subset_data(
         region (str): Region of interest
         sub_region (str): Sub-region of interest
     Returns:
-        subset(pd.DataFrame)
+        subset(pd.DataFrame): Last 14 days fo JHU COVID data with daily new case count 
+        and rolling 7-day mean.
     """
     filter = (df.Country_Region==country)
     
