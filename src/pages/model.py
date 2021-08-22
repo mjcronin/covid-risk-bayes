@@ -99,10 +99,11 @@ def run_model(
             )
         )
         st.write("""
-        ### Based on:\n * A local vaccination rate of **{vacc_rate}%** \n- An estimated vaccine efficacy of **{vacc_eff}%** against COVID-19 infection\n - A rate of **{inf_rate}** infections per 100,000 people in the local population.""".format(
+        ### Based on:\n * A local vaccination rate of **{vacc_rate}%** \n- An estimated vaccine efficacy of **{vacc_eff}%** against COVID-19 infection\n - A rate of **{inf_rate}** infections per 100,000 people in the local population.\n - A projected "true" rate of **{inf_rate_scaled}** infections per 100,000 people in the local population.""".format(
             vacc_rate = np.round(100*vaccination_rate, 2),
             vacc_eff = 100*vaccine_efficacy,
-            inf_rate = np.round(1e5*infectious_rate, 2)
+            inf_rate = np.round(1e5*infectious_rate, 2),
+            inf_rate_scaled = np.round(1e5*infectious_rate/identification_rate, 2)
             )
         )
     
