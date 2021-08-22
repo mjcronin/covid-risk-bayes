@@ -2,8 +2,8 @@ import os
 import datetime as dt
 from typing import List, Tuple
 
-import streamlit as st
 import pandas as pd
+import numpy as np
 
 
 def load(today: dt.date, data_dir: str='./data/') -> pd.DataFrame:
@@ -59,18 +59,28 @@ def load_and_concat(last_14: List[str], data_dir: str='./data/') -> pd.DataFrame
     """
     kwargs = {
         'usecols': [
-            'FIPS',
             'Admin2',
             'Province_State',
             'Country_Region',
             'Last_Update',
-            'Incident_Rate'
+            'Incident_Rate',
+            'Confirmed'
             ]
     }
     frames = [
         pd.read_csv(data_dir+'raw/{}.csv'.format(date), **kwargs) for date in last_14
     ]
+    # Do a little feature engineering
     df = pd.concat(frames).reset_index(drop=True)
+    strptime_JHU = lambda x: dt.datetime.strptime(x, '%Y-%m-%d %H:%M:%S').date()
+
+    df['date'] = [strptime_JHU(d) for d in df.Last_Update]
+    df = df.sort_values(by='date').drop('Last_Update', axis=1)
+
+    df['population'] = (
+        df.Confirmed.div(df.Incident_Rate).mul(1e5).astype(int, errors='ignore')
+    )
+    # df['population'] = [int(x) if np.isfinite(x) else x for x in df.population]
 
     return df
 
