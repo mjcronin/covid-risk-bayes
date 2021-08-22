@@ -21,12 +21,12 @@ def write(
     with model_control:
         cols = st.columns(3)
         
-        with cols[1]:
+        with cols[0]:
             identification_rate = st.slider(
                 'Infection detection rate (%)', min_value=1, max_value=100, value=100
             )
             identification_rate /= 100 # Rescale from % to decimal
-        with cols[2]:
+        with cols[1]:
             vaccine_efficacy = st.slider(
                 'Estimated vaccine efficacy (%)', min_value=1, max_value=100, value=65
             )
