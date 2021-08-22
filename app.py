@@ -15,7 +15,7 @@ with open('./config.yaml', 'r') as f:
     _CONFIG: dict = yaml.safe_load(f)
 
 _PAGES = {
-    'Home': home,
+    # 'Home': home,
     'Model': model,
     'About': about,
     'Disclaimer': disclaimer
