@@ -86,6 +86,7 @@ def download_and_save_CCI(data_dir: str='./data/raw/') -> None:
 
     return None
 
+
 def load_and_concat(
     last_15: List[str], data_dir: str='./data/', today: dt.date=None
 ) -> pd.DataFrame:
