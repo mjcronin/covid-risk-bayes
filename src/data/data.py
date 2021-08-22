@@ -1,6 +1,6 @@
 import os
 import datetime as dt
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 import pandas as pd
 import numpy as np
@@ -23,7 +23,7 @@ def load(today: dt.date, data_dir: str='./data/') -> pd.DataFrame:
     to_download = [f for f in last_14 if f not in downloaded]
 
     download_and_save(to_download, data_dir=data_dir)
-    df = load_and_concat(last_14)
+    df = load_and_concat(last_14, data_dir=data_dir, today=today)
 
     return df
 
@@ -48,11 +48,15 @@ def download_and_save(to_download: List[str], data_dir: str='./data/') -> None:
     return None
 
 
-def load_and_concat(last_14: List[str], data_dir: str='./data/') -> pd.DataFrame:
+def load_and_concat(
+    last_14: List[str], data_dir: str='./data/', today: dt.date=None
+) -> pd.DataFrame:
     """Load and concatenate last 14 days of JHU COVID CSV data
     
     Args:
         last_14 (list): Last 14 dates in format '%m-%d-%Y'
+        data_dir (str): root directory for app data
+        today (dt.date): Today's date as a dt.date
     Returns:
         df (pd.DataFrame): DataFrame containing the last 14 days of JHU COVID 
             Incident_Rate and geographical info 
@@ -80,12 +84,14 @@ def load_and_concat(last_14: List[str], data_dir: str='./data/') -> pd.DataFrame
     df['population'] = (
         df.Confirmed.div(df.Incident_Rate).mul(1e5).astype(int, errors='ignore')
     )
-    # df['population'] = [int(x) if np.isfinite(x) else x for x in df.population]
+
+    # Additional date filter
+    df = df.loc[df.date >= (today - dt.timedelta(days=15))]
 
     return df
 
 
-def get_reigons(df: pd.DataFrame) -> Tuple[List[str]]:
+def get_regions(df: pd.DataFrame) -> Tuple[List[str]]:
     """Return lists of countries, states, and sub-regions from df"""
     country_set = set(df.Country_Region)
     country_set.remove('US')
@@ -94,3 +100,50 @@ def get_reigons(df: pd.DataFrame) -> Tuple[List[str]]:
     countries = ['US', 'United Kingdom'] + sorted(list(country_set))
 
     return countries
+
+
+def subset_data(
+    df: pd.DataFrame,
+    country: str,
+    region: Optional[str]=None,
+    sub_region: Optional[str]=None
+):
+    """Return data subset of interest
+    
+    Args:
+        df (pd.DataFrame): Last 14 days' JHU COVID data
+        country (str): Country of interest
+        region (str): Region of interest
+        sub_region (str): Sub-region of interest
+    Returns:
+        subset(pd.DataFrame)
+    """
+    filter = (df.Country_Region==country)
+    
+    if all([region, region!='All']):
+        filter = (filter) & (df.Province_State==region)
+    
+    if all([sub_region, sub_region!='All']):
+        filter = (filter) & (df.Admin2==sub_region)
+
+    subset = df.loc[filter, :].reset_index(drop=True).dropna(axis=1, how='all').copy()
+
+    if region != 'All':
+        by=['date', 'Country_Region', 'Province_State']
+    elif sub_region != 'All':
+        by=['date', 'Country_Region', 'Province_State']
+    else:
+        by=['date', 'Country_Region'
+        ]
+    try:
+        subset = (
+            subset.groupby(
+                by=by, as_index=False
+            ).agg({'Confirmed': sum, 'population': sum})
+        )
+        subset['Incident_Rate'] = subset.Confirmed.mul(1e5).div(subset.population)
+    except:
+        subset = None
+        # st.write("## Data not reported at this granularity in the last 14 days.")
+
+    return subset
