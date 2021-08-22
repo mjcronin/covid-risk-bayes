@@ -27,6 +27,11 @@ def write(
                 'Infection detection rate (%)', min_value=1, max_value=100, value=100
             )
             identification_rate /= 100 # Rescale from % to decimal
+        with cols[2]:
+            vaccine_efficacy = st.slider(
+                'Estimated vaccine efficacy (%)', min_value=1, max_value=100, value=65
+            )
+            vaccine_efficacy /= 100 # Rescale from % to decimal
     run_model(
         df,
         vacc_data,
@@ -34,6 +39,7 @@ def write(
         region=region,
         sub_region=sub_region,
         identification_rate=identification_rate,
+        vaccine_efficacy=vaccine_efficacy
     )
     return None
 
@@ -45,7 +51,8 @@ def run_model(
     region: Optional[str]=None,
     sub_region: Optional[str]=None,
     infectious_duration: int=10,
-    identification_rate: float=1.0
+    identification_rate: float=1.0,
+    vaccine_efficacy: float = 0.65
 ):
     """
     Args:
@@ -73,8 +80,7 @@ def run_model(
         )
     else:
 
-        st.write('USING PLACEHOLDER VACCINE EFFICACY = 0.65')
-        vaccine_efficacy = 0.65
+        st.write('USING ASSUMED VACCINE EFFICACY = {}'.format(np.round(vaccine_efficacy,2)))
 
         risk = covid_bayes.predict_risk(
             infectious_rate,
