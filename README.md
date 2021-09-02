@@ -2,7 +2,7 @@
 ## Disclaimer
 This project is simply intended as a proof of concept, and is neither peer-reviewed nor actively maintained (althogh development is ongoing). As such, users should not make decisions based on the model output.
 ## Introduction
-An app to predict the probability that an individual has an active COVID infection based on current local conditions. An online version will be available shortly on the Streamlit hosting platform, pending account approval.
+An app to predict the probability that an individual has an active COVID infection based on current local conditions. An online version is available [here](https://share.streamlit.io/mjcronin/covid-risk-bayes/main/app.py).
 
 To run from command line (`bash` or `zsh`):
 - Create virtual environment (reccommended):
@@ -65,7 +65,3 @@ Given that
 we find that 
 
 ![p_V_i_solved](./images/p_v_i_solved.svg)
-
-
-
-
